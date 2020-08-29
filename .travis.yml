@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t vns1311/react-test -f ./client/Dockerfile.dev ./client
+script:
+  - docker run -e CI=true vns1311/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t vns1311/fib-multi-client ./client
+  - docker build -t vns1311/fib-multi-server ./server
+  - docker build -t vns1311/fib-multi-nginx ./nginx
+  - docker build -t vns1311/fib-multi-worker ./worker
+  # Login to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take these images and push them to docker hub
+  - docker push vns1311/fib-multi-client
+  - docker push vns1311/fib-multi-nginx
+  - docker push vns1311/fib-multi-server
+  - docker push vns1311/fib-multi-worker
+
